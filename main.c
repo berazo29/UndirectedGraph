@@ -78,19 +78,19 @@ void printGraph(struct Graph* graph, char **arr)
     for (v = 0; v < graph->V; ++v)
     {
         struct AdjListNode* pCrawl = graph->array[v].head;
-        printf("\n Adjacency list of vertex %s\n head ", arr[v]);
+        printf("\n Adjacency list of vertex %s %d\n head ", arr[v], v);
         while (pCrawl)
         {
-            printf("-> %s", arr[pCrawl->dest]);
+            printf("-> %s %d", arr[pCrawl->dest],pCrawl->dest );
             pCrawl = pCrawl->next;
         }
         printf("\n");
     }
 }
 
-int letterToNumberMapping(char **str,int size, char *input){
+int letterToNumberMapping(char **matrix,int size, char *input){
     for (int i = 0; i < size; i++){
-        if ( strcmp(str[i], input ) == 0){
+        if ( strcmp(matrix[i], input ) == 0){
             return i;
         }
     }
@@ -113,10 +113,10 @@ void deleteGraph(struct Graph *g, int V){
     free(g);
 }
 
-int counterAdjNodes(struct Graph *g, int V, char d){
+int getDegreeVertex(struct Graph *g, int V, char *option){
 
     // Check for degree
-    if ( d != 'd'){
+    if ( strcmp(option,"d") != 0){
         return -1;
     }
     // Graph is empty
@@ -136,6 +136,33 @@ int counterAdjNodes(struct Graph *g, int V, char d){
     }
     return counter;
 }
+
+void getAdjVertex( struct Graph *g, char *option, int V, char **matrix, int size){
+
+    // Check for degree
+    if ( strcmp(option, "a") != 0){
+        return;
+    }
+    // Graph is empty
+    if ( g == NULL || matrix == NULL){
+        return;
+    }
+    if ( V < 0){
+        printf("Vertex does not exist\n");
+        return;
+    }
+    struct AdjListNode* adjList = g->array[V].head;
+    //printf("Adjacency list of vertex %s:", matrix[V]);
+    if ( adjList == NULL){
+        return;
+    }
+    while (adjList){
+        printf("%s ", matrix[adjList->dest]);
+        adjList = adjList->next;
+    }
+    printf("\n");
+}
+
 
 int main( int argc, char *argv[argc+1]) {
 
@@ -158,7 +185,7 @@ int main( int argc, char *argv[argc+1]) {
     // Get the data FREE later
     int size;
     fscanf( fp, "%d", &size );
-    printf("%d\n", size);
+    //printf("SIZE LINKEDLIST%d\n", size);
     char **indexArr = malloc(size * sizeof(char *));
 
     for (int i = 0; i < size; ++i) {
@@ -167,7 +194,7 @@ int main( int argc, char *argv[argc+1]) {
         indexArr[i] = malloc(len);
         fscanf( fp, "%s", tmp );
         strcpy(indexArr[i], tmp);
-        printf("a[%d]:%s\n",i,indexArr[i]);
+        //printf("a[%d]:%s\n",i,indexArr[i]);
     }
     char tmp0[10];
     char tmp1[10];
@@ -178,11 +205,27 @@ int main( int argc, char *argv[argc+1]) {
         addEdge(graph, indexMapSource, indexMapDestination);
     }
 
-    // Close the file and destroy memory allocations
+    // Close the file
     fclose(fp);
 
-    // NEXT CODE
-    printf("TRUE d %d",counterAdjNodes(graph,1,'d'));
+    // NEXT FILE
+    fp = fopen( argv[2], "r");
+    if ( fp == NULL ){
+        printf("Unable to read");
+        return EXIT_SUCCESS;
+    }
+    while ( fscanf( fp, "%s %s", tmp0, tmp1 ) != EOF ){
+        char *option = tmp0;
+        int vertex = letterToNumberMapping(indexArr,size,tmp1);
+        if (strcmp(option,"d") == 0){
+            printf("%d\n", getDegreeVertex(graph, vertex, option));
+        } else if (strcmp(option,"a") == 0){
+            getAdjVertex(graph,option,vertex,indexArr,size);
+        } else{
+            printf("ERROR INPUT FORMAT");
+        }
+
+    }
 
     // print the adjacency list representation of the above graph
     printGraph(graph,indexArr);
