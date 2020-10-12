@@ -89,7 +89,7 @@ void printGraph(struct Graph* graph, char **arr)
 }
 
 int letterToNumberMapping(char **matrix,int size, char *input){
-    for (int i = 0; i < size; i++){
+    for (int i = 0; i <= size; i++){
         if ( strcmp(matrix[i], input ) == 0){
             return i;
         }
@@ -128,7 +128,7 @@ int getDegreeVertex(struct Graph *g, int V, char *option){
     // Pointer to the linked list of the graph
     struct AdjList ptr = g->array[V];
     if ( ptr.head == NULL){
-        return -1;
+        return counter;
     }
     while ( ptr.head != NULL){
         counter++;
@@ -153,6 +153,8 @@ void getAdjVertex( struct Graph *g, char *option, int V, char **matrix, int size
     }
     struct AdjListNode* adjList = g->array[V].head;
     //printf("Adjacency list of vertex %s:", matrix[V]);
+    struct AdjListNode* clone = NULL;
+
     if ( adjList == NULL){
         return;
     }
