@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 // A structure to represent an adjacency list node
 struct AdjListNode
 {
@@ -96,6 +97,46 @@ int letterToNumberMapping(char **str,int size, char *input){
     return -1;
 }
 
+void deleteArray(char **str, int size){
+    // Deallocate the memory
+    for ( int i = 0; i < size; i++ )
+    {
+        free(str[i]);
+    }
+    free(str);
+}
+
+void deleteGraph(struct Graph *g, int V){
+    for (int i=0; i < V; i++ ){
+        free(g->array[i].head);
+    }
+    free(g);
+}
+
+int counterAdjNodes(struct Graph *g, int V, char d){
+
+    // Check for degree
+    if ( d != 'd'){
+        return -1;
+    }
+    // Graph is empty
+    if ( g == NULL){
+        return -1;
+    }
+
+    int counter = 0;
+    // Pointer to the linked list of the graph
+    struct AdjList ptr = g->array[V];
+    if ( ptr.head == NULL){
+        return -1;
+    }
+    while ( ptr.head != NULL){
+        counter++;
+        ptr.head = ptr.head->next;
+    }
+    return counter;
+}
+
 int main( int argc, char *argv[argc+1]) {
 
     //File name from arguments
@@ -136,14 +177,21 @@ int main( int argc, char *argv[argc+1]) {
         int indexMapDestination = letterToNumberMapping(indexArr,size, tmp1);
         addEdge(graph, indexMapSource, indexMapDestination);
     }
+
     // Close the file and destroy memory allocations
     fclose(fp);
 
+    // NEXT CODE
+    printf("TRUE d %d",counterAdjNodes(graph,1,'d'));
 
     // print the adjacency list representation of the above graph
     printGraph(graph,indexArr);
 
-    return 0;
+    // Deallocate memory and graph
+    deleteArray(indexArr,size);
+    deleteGraph(graph,size);
+
+
 
 
     return EXIT_SUCCESS;
