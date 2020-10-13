@@ -2,87 +2,70 @@
 #include <stdlib.h>
 #include <string.h>
 
-// A structure to represent an adjacency list node
 struct AdjListNode
 {
     int dest;
     struct AdjListNode* next;
 };
 
-// A structure to represent an adjacency list
 struct AdjList
 {
     struct AdjListNode *head;
 };
 
-// A structure to represent a graph. A graph
-// is an array of adjacency lists.
-// Size of array will be V (number of vertices
-// in graph)
 struct Graph
 {
     int V;
     struct AdjList* array;
 };
 
-// A utility function to create a new adjacency list node
-struct AdjListNode* newAdjListNode(int dest)
+// Create a new adj list node
+struct AdjListNode* newAdjListNode(int vertexDestination)
 {
     struct AdjListNode* newNode = (struct AdjListNode*) malloc(sizeof(struct AdjListNode));
-    newNode->dest = dest;
+    newNode->dest = vertexDestination;
     newNode->next = NULL;
     return newNode;
 }
 
-// A utility function that creates a graph of V vertices
+// Creates a graph of V vertices
 struct Graph* createGraph(int V)
 {
     struct Graph* graph = (struct Graph*) malloc(sizeof(struct Graph));
     graph->V = V;
 
-    // Create an array of adjacency lists.  Size of
-    // array will be V
+    // Allocate memory for an  array
     graph->array = (struct AdjList*) malloc(V * sizeof(struct AdjList));
 
-    // Initialize each adjacency list as empty by
-    // making head as NULL
-    int i;
-    for (i = 0; i < V; ++i)
+    // Initialized adjancent
+    for (int i = 0; i < V; ++i)
         graph->array[i].head = NULL;
 
     return graph;
 }
 
 // Adds an edge to an undirected graph
-void addEdge(struct Graph* graph, int src, int dest)
-{
-    // Add an edge from src to dest.  A new node is
-    // added to the adjacency list of src.  The node
-    // is added at the beginning
-    struct AdjListNode* newNode = newAdjListNode(dest);
-    newNode->next = graph->array[src].head;
-    graph->array[src].head = newNode;
+void addEdge(struct Graph* graph, int u, int v){
+    // Create a new node and add it on the beginning
+    struct AdjListNode* newNode = newAdjListNode(v);
+    newNode->next = graph->array[u].head;
+    graph->array[u].head = newNode;
 
-    // Since graph is undirected, add an edge from
-    // dest to src also
-    newNode = newAdjListNode(src);
-    newNode->next = graph->array[dest].head;
-    graph->array[dest].head = newNode;
+    // Adds an edge from v to u in the graph
+    newNode = newAdjListNode(u);
+    newNode->next = graph->array[v].head;
+    graph->array[v].head = newNode;
 }
 
-// A utility function to print the adjacency list
-// representation of graph
-void printGraph(struct Graph* graph, char **arr)
+// Print the graph unsorted
+void printGraph(struct Graph* g, char **arr)
 {
-    int v;
-    for (v = 0; v < graph->V; ++v)
-    {
-        struct AdjListNode* pCrawl = graph->array[v].head;
+    for (int v = 0; v < g->V; ++v){
+        struct AdjListNode* ptr = g->array[v].head;
         printf("\n Adjacency list of vertex %s %d\n head ", arr[v], v);
-        while (pCrawl)
-        {
-            printf("-> %s %d", arr[pCrawl->dest],pCrawl->dest );
-            pCrawl = pCrawl->next;
+        while (ptr){
+            printf("-> %s %d", arr[ptr->dest], ptr->dest );
+            ptr = ptr->next;
         }
         printf("\n");
     }
@@ -97,13 +80,13 @@ int letterToNumberMapping(char **matrix,int size, char *input){
     return -1;
 }
 
-void deleteArray(char **str, int size){
+void deleteArray(char **arr, int size){
     // Deallocate the memory
     for ( int i = 0; i < size; i++ )
     {
-        free(str[i]);
+        free(arr[i]);
     }
-    free(str);
+    free(arr);
 }
 
 void deleteGraph(struct Graph *g, int V){
@@ -137,34 +120,66 @@ int getDegreeVertex(struct Graph *g, int V, char *option){
     return counter;
 }
 
-void getAdjVertex( struct Graph *g, char *option, int V, char **matrix, int size){
+// Create a 2D array
+char **createArray(int row, int col){
+    // Allocate memory for 2D array
+    char **arr = (char**) malloc(row*sizeof(char*));
+    for ( int i = 0; i < row; i++ ){
+        arr[i] = (char*) malloc(col*sizeof(char));
+    }
+    return arr;
+}
 
-    // Check for degree
-    if ( strcmp(option, "a") != 0){
-        return;
-    }
-    // Graph is empty
-    if ( g == NULL || matrix == NULL){
-        return;
-    }
-    if ( V < 0){
-        printf("Vertex does not exist\n");
-        return;
-    }
-    struct AdjListNode* adjList = g->array[V].head;
-    //printf("Adjacency list of vertex %s:", matrix[V]);
-    struct AdjListNode* clone = NULL;
+// Return a sorted adjacent list from the graph at V vertex populated by letters Nodes
+char** sortedAdjList(struct Graph *g, int V, char **matrix){
 
-    if ( adjList == NULL){
-        return;
+    // Error check
+    if (V < 0){
+        return NULL;
     }
-    while (adjList){
-        printf("%s ", matrix[adjList->dest]);
-        adjList = adjList->next;
+    if ( g == NULL){
+        return NULL;
+    }
+
+    // Create and initialize an array and degree as the size
+    int degree = getDegreeVertex(g,V,"d");
+    char **arr = createArray(degree,10);
+    struct AdjListNode* head = g->array[V].head;
+    int i = 0;
+
+    if ( head == NULL){
+        return NULL;
+    }
+    // Traverse the adjacent list and copy to the matrix
+    while (head){
+        strcpy(arr[i], matrix[head->dest]);
+        i++;
+        head = head->next;
+    }
+
+    // Sort the adjacent list lexicographically
+    char temp[10];
+    for(int p=0;p<degree-1;p++){
+        for(int q=p+1;q<degree;q++){
+            if(strcmp(arr[p],arr[q])>0){
+                strcpy(temp,arr[p]);
+                strcpy(arr[p],arr[q]);
+                strcpy(arr[q],temp);
+            }
+        }
+    }
+    return arr;
+}
+
+// Prints the lexicographically sorted adjacent list from the graph
+void printAdjVertexSorted( struct Graph *g, int V, char **indexArr){
+    char **sortedlist = sortedAdjList(g, V,indexArr);
+    //printf("degree: %d\n", getDegreeVertex(graph,vertex,"d"));
+    for (int i = 0; i < getDegreeVertex(g,V,"d"); ++i) {
+        printf("%s ",sortedlist[i]);
     }
     printf("\n");
 }
-
 
 int main( int argc, char *argv[argc+1]) {
 
@@ -207,7 +222,7 @@ int main( int argc, char *argv[argc+1]) {
         addEdge(graph, indexMapSource, indexMapDestination);
     }
 
-    // Close the file
+    // Close the file 1
     fclose(fp);
 
     // NEXT FILE
@@ -219,25 +234,27 @@ int main( int argc, char *argv[argc+1]) {
     while ( fscanf( fp, "%s %s", tmp0, tmp1 ) != EOF ){
         char *option = tmp0;
         int vertex = letterToNumberMapping(indexArr,size,tmp1);
+        if ( vertex < 0 ){
+            printf("Error Vertex does not exist\n");
+            continue;
+        }
         if (strcmp(option,"d") == 0){
             printf("%d\n", getDegreeVertex(graph, vertex, option));
         } else if (strcmp(option,"a") == 0){
-            getAdjVertex(graph,option,vertex,indexArr,size);
+            printAdjVertexSorted(graph,vertex,indexArr);
         } else{
-            printf("ERROR INPUT FORMAT");
+            printf("Error input format\n");
         }
 
     }
+    // Close the file 2
+    fclose(fp);
 
-    // print the adjacency list representation of the above graph
-    printGraph(graph,indexArr);
+    //printGraph(graph,indexArr);
 
     // Deallocate memory and graph
     deleteArray(indexArr,size);
     deleteGraph(graph,size);
-
-
-
 
     return EXIT_SUCCESS;
 }
